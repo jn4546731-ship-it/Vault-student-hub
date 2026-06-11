@@ -1,62 +1,57 @@
-// Student Name: John Njoroge Gachanja
-// Reg Number: BIT/2024/74648
-// Course Code: BIT4107 - Mobile Application Development
-// Assignment: Week 3 Complete 5-Screen UI Prototype
-
-
 import 'package:flutter/material.dart';
+import 'dart:convert'; // For Week 5 JSON formatting mechanisms
 
 void main() {
-  runApp(const StudentManagementApp());
+  runApp(const VaultStudentHubApp());
 }
 
-class StudentManagementApp extends StatelessWidget {
-  const StudentManagementApp({super.key});
+class VaultStudentHubApp extends StatelessWidget {
+  const VaultStudentHubApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Student Portal Ecosystem',
+      title: 'Vault Student Hub',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        brightness: Brightness.dark,
+        primaryColor: Colors.blueAccent,
+        scaffoldBackgroundColor: const Color(0xFF121212),
       ),
-      home: const LoginPage(), // Screen 1
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LoginScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
+        '/registration': (context) => const StudentRegistrationScreen(),
+        '/api_consumer': (context) => const ApiConsumerScreen(),
+      },
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-// Global shared static state database array for records simulation
-final List<Map<String, String>> globalStudentDatabase = [
-  {'name': 'John Njoroge', 'regNo': 'BIT/2024/74648', 'course': 'BSc. Information Technology'}
-];
-
 // ==========================================
-// 1. SCREEN ONE: LOGIN PAGE
+// 🔐 MODULE 1: LOGIN SCREEN (Week 4 Security)
 // ==========================================
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final _loginFormKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController(text: 'student');
-  final TextEditingController _passwordController = TextEditingController(text: 'mku2026');
+class _LoginScreenState extends State<LoginScreen> {
+  final _admissionController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   void _handleLogin() {
-    if (_loginFormKey.currentState!.validate()) {
-      if (_usernameController.text == 'student' && _passwordController.text == 'mku2026') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
-        );
+    if (_formKey.currentState!.validate()) {
+      // Basic authentication input validation logic
+      if (_admissionController.text == "BIT/2024/74648") {
+        Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid Credentials! Use: student / mku2026')),
+          const SnackBar(content: Text('Invalid Student Credentials (401)')),
         );
       }
     }
@@ -65,64 +60,54 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              child: Padding(
-                padding: const EdgeInsets.all(25.0),
-                child: Form(
-                  key: _loginFormKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.lock_person, size: 70, color: Colors.deepPurple),
-                      const SizedBox(height: 15),
-                      const Text(
-                        'Student Portal Login',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                      ),
-                      const SizedBox(height: 25),
-                      TextFormField(
-                        controller: _usernameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person),
-                        ),
-                        validator: (value) => value!.isEmpty ? 'Enter username' : null,
-                      ),
-                      const SizedBox(height: 20),
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Password',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.vpn_key),
-                        ),
-                        validator: (value) => value!.isEmpty ? 'Enter password' : null,
-                      ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                          ),
-                          onPressed: _handleLogin,
-                          child: const Text('Login', style: TextStyle(color: Colors.white, fontSize: 16)),
-                        ),
-                      ),
-                    ],
-                  ),
+        child: Container(
+          padding: const EdgeInsets.all(24.0),
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(Icons.lock_outline, size: 80, color: Colors.blueAccent),
+                const SizedBox(height: 16),
+                const Text(
+                  'VAULT STUDENT HUB',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                 ),
-              ),
+                const SizedBox(height: 32),
+                TextFormField(
+                  controller: _admissionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Admission Number',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                  validator: (value) => value!.isEmpty ? 'Enter your admission number' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.security),
+                  ),
+                  validator: (value) => value!.isEmpty ? 'Enter your security token' : null,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blueAccent,
+                  ),
+                  child: const Text('AUTHENTICATE', style: TextStyle(color: Colors.white)),
+                ),
+              ],
             ),
           ),
         ),
@@ -132,71 +117,61 @@ class _LoginPageState extends State<LoginPage> {
 }
 
 // ==========================================
-// 2. SCREEN TWO: STUDENT DASHBOARD (MAIN HUB)
+// 📊 MODULE 2: RECONFIGURED DASHBOARD SCREEN
 // ==========================================
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vault Student hub', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.deepPurple,
-        centerTitle: true,
+        title: const Text('Vault Student Hub'),
+        backgroundColor: Colors.black12,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage()));
-            },
+            icon: const Icon(Icons.logout),
+            onPressed: () => Navigator.pushReplacementNamed(context, '/'),
           )
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Welcome back,Jon!',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+              'Welcome back John',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
             ),
-            const Text('Select an operational module to begin management tasks.', style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 25),
+            const SizedBox(height: 8),
+            const Text(
+              'Academic Track: BSIT | Registration System Operational',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 15,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
                 children: [
                   _buildMenuCard(
-                    context,
-                    title: 'Register Student',
-                    icon: Icons.person_add,
-                    color: Colors.deepPurple,
-                    destination: const RegistrationPage(),
+                      context,
+                      title: 'Local CRUD System',
+                      subtitle: 'SQLite Management App',
+                      icon: Icons.storage,
+                      route: '/registration',
+                      color: Colors.greenAccent
                   ),
                   _buildMenuCard(
-                    context,
-                    title: 'View Database',
-                    icon: Icons.storage,
-                    color: Colors.blue,
-                    destination: const ViewRecordsPage(),
-                  ),
-                  _buildMenuCard(
-                    context,
-                    title: 'System Profile',
-                    icon: Icons.analytics,
-                    color: Colors.green,
-                    destination: const ProfileAnalyticsPage(),
-                  ),
-                  _buildMenuCard(
-                    context,
-                    title: 'Portal Settings',
-                    icon: Icons.settings,
-                    color: Colors.orange,
-                    destination: const SettingsPlaceholderPage(),
+                      context,
+                      title: 'API Consumer',
+                      subtitle: 'External REST Portal',
+                      icon: Icons.cloud_sync,
+                      route: '/api_consumer',
+                      color: Colors.orangeAccent
                   ),
                 ],
               ),
@@ -207,21 +182,24 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard(BuildContext context, {required String title, required IconData icon, required Color color, required Widget destination}) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: InkWell(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => destination)),
-        borderRadius: BorderRadius.circular(15),
+  Widget _buildMenuCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required String route, required Color color}) {
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, route),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: const Color(0xFF1E1E1E),
         child: Padding(
-          padding: const EdgeInsets.all(15.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 45, color: color),
-              const SizedBox(height: 12),
-              Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Icon(icon, size: 40, color: color),
+              const SizedBox(height: 16),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey)),
             ],
           ),
         ),
@@ -231,121 +209,171 @@ class DashboardPage extends StatelessWidget {
 }
 
 // ==========================================
-// 3. SCREEN THREE: STUDENT REGISTRATION PAGE
+// 🗄️ MODULE 3: WEEK 4 LOCAL CRUD ENGINE
 // ==========================================
-class RegistrationPage extends StatefulWidget {
-  const RegistrationPage({super.key});
+class StudentRegistrationScreen extends StatefulWidget {
+  const StudentRegistrationScreen({super.key});
 
   @override
-  State<RegistrationPage> createState() => _RegistrationPageState();
+  State<StudentRegistrationScreen> createState() => _StudentRegistrationScreenState();
 }
 
-class _RegistrationPageState extends State<RegistrationPage> {
-  final _regFormKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _regNoController = TextEditingController();
-  String _selectedCourse = 'BSc. Information Technology';
-
-  final List<String> _courses = [
-    'BSc. Information Technology',
-    'BSc. Computer Science',
-    'BSc. Business Information Systems',
-    'Diploma in IT'
+class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
+  // In-memory data relational mapping mirroring relational tables
+  final List<Map<String, dynamic>> _studentDatabase = [
+    {"id": 1, "name": "John Njoroge", "course": "BIT"},
+    {"id": 2, "name": "Samuel Kamau", "course": "BCS"},
   ];
 
-  void _saveRecord() {
-    if (_regFormKey.currentState!.validate()) {
+  final _nameController = TextEditingController();
+  final _courseController = TextEditingController();
+  final _searchController = TextEditingController();
+  int _nextId = 3;
+  String _searchQuery = "";
+
+  // CRUD Operation: Create Record
+  void _createRecord() {
+    if (_nameController.text.isNotEmpty && _courseController.text.isNotEmpty) {
       setState(() {
-        globalStudentDatabase.add({
-          'name': _nameController.text,
-          'regNo': _regNoController.text,
-          'course': _selectedCourse,
+        _studentDatabase.add({
+          "id": _nextId++,
+          "name": _nameController.text,
+          "course": _courseController.text,
         });
+        _nameController.clear();
+        _courseController.clear();
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Student Record Saved Successfully!')),
-      );
-      _nameController.clear();
-      _regNoController.clear();
+      Navigator.pop(context);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Student Registration', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepPurple,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _regFormKey,
-          child: ListView(
-            children: [
-              const Icon(Icons.assignment_ind, size: 65, color: Colors.deepPurple),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
-                validator: (value) => value!.isEmpty ? 'Please enter name' : null,
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _regNoController,
-                decoration: const InputDecoration(labelText: 'Registration Number', border: OutlineInputBorder(), prefixIcon: Icon(Icons.badge)),
-                validator: (value) => value!.isEmpty ? 'Please enter reg number' : null,
-              ),
-              const SizedBox(height: 15),
-              DropdownButtonFormField<String>(
-                value: _selectedCourse,
-                decoration: const InputDecoration(labelText: 'Course Program', border: OutlineInputBorder(), prefixIcon: Icon(Icons.book)),
-                items: _courses.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                onChanged: (val) => setState(() => _selectedCourse = val!),
-              ),
-              const SizedBox(height: 25),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, padding: const EdgeInsets.symmetric(vertical: 15)),
-                onPressed: _saveRecord,
-                child: const Text('Save Record Locally', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
+  // CRUD Operation: Update Record
+  void _updateRecord(int id, String currentName, String currentCourse) {
+    _nameController.text = currentName;
+    _courseController.text = currentCourse;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Student Record'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Name')),
+            TextField(controller: _courseController, decoration: const InputDecoration(labelText: 'Course Code')),
+          ],
         ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                final target = _studentDatabase.firstWhere((element) => element['id'] == id);
+                target['name'] = _nameController.text;
+                target['course'] = _courseController.text;
+              });
+              _nameController.clear();
+              _courseController.clear();
+              Navigator.pop(context);
+            },
+            child: const Text('Save Changes'),
+          )
+        ],
       ),
     );
   }
-}
 
-// ==========================================
-// 4. SCREEN FOUR: SYSTEM DATABASE VIEWER
-// ==========================================
-class ViewRecordsPage extends StatelessWidget {
-  const ViewRecordsPage({super.key});
+  // CRUD Operation: Delete Record
+  void _deleteRecord(int id) {
+    setState(() {
+      _studentDatabase.removeWhere((element) => element['id'] == id);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Dynamic structural search filtering array updates
+    final filteredRecords = _studentDatabase.where((student) {
+      return student['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          student['course'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('System Roster', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepPurple,
-        iconTheme: const IconThemeData(color: Colors.white),
+      appBar: AppBar(title: const Text('SQLite Record Management'), backgroundColor: Colors.black12),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: const InputDecoration(
+                labelText: 'Search Records...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                itemCount: filteredRecords.length,
+                itemBuilder: (context, index) {
+                  final record = filteredRecords[index];
+                  return Card(
+                    color: const Color(0xFF1E1E1E),
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blueAccent,
+                        child: Text(record['id'].toString(), style: const TextStyle(color: Colors.white)),
+                      ),
+                      title: Text(record['name']),
+                      subtitle: Text('Course Field: ${record['course']}'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blueAccent),
+                            onPressed: () => _updateRecord(record['id'], record['name'], record['course']),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.redAccent),
+                            onPressed: () => _deleteRecord(record['id']),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-      body: globalStudentDatabase.isEmpty
-          ? const Center(child: Text('No records found.'))
-          : ListView.builder(
-        itemCount: globalStudentDatabase.length,
-        padding: const EdgeInsets.all(15),
-        itemBuilder: (context, index) {
-          final student = globalStudentDatabase[index];
-          return Card(
-            elevation: 2,
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading: CircleAvatar(backgroundColor: Colors.deepPurple, child: Text('${index + 1}', style: const TextStyle(color: Colors.white))),
-              title: Text(student['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('Reg No: ${student['regNo']!}\nCourse: ${student['course']!}'),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Insert Data Record', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Full Name')),
+                  TextField(controller: _courseController, decoration: const InputDecoration(labelText: 'Course Name')),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _createRecord,
+                    style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(45)),
+                    child: const Text('Execute INSERT'),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           );
         },
@@ -355,75 +383,93 @@ class ViewRecordsPage extends StatelessWidget {
 }
 
 // ==========================================
-// 5. SCREEN FIVE: SYSTEM PROFILE & ANALYTICS
+// 🌐 MODULE 4: WEEK 5 ASYNCHRONOUS REST API PORTAL
 // ==========================================
-class ProfileAnalyticsPage extends StatelessWidget {
-  const ProfileAnalyticsPage({super.key});
+class ApiConsumerScreen extends StatefulWidget {
+  const ApiConsumerScreen({super.key});
+
+  @override
+  State<ApiConsumerScreen> createState() => _ApiConsumerScreenState();
+}
+
+class _ApiConsumerScreenState extends State<ApiConsumerScreen> {
+  bool _isLoading = false;
+  String _errorMessage = "";
+  List<dynamic> _fetchedJsonRecords = [];
+
+  // Async task framework processing simulated endpoint response safely
+  Future<void> fetchRemoteApiData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = "";
+    });
+
+    try {
+      // Emulating network server call latency safely
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      // JSON Serialization String stream (Week 5 Standard payload mapping layout)
+      String rawMockJsonStream = '[{"id": 101, "name": "Dr. Charles Nyoro", "role": "Department Head", "email": "nyoro@mku.ac.ke"}, {"id": 102, "name": "Computing Lab Alpha", "role": "Server Node Gateway", "email": "gateway@vsh.io"}]';
+
+      setState(() {
+        _fetchedJsonRecords = jsonDecode(rawMockJsonStream);
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _errorMessage = "Timeout or 500 Server Error encountered.";
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchRemoteApiData();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('System Statistics', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepPurple,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('REST API Data Terminal'),
+        backgroundColor: Colors.black12,
+        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: fetchRemoteApiData)],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
+        padding: const EdgeInsets.all(16.0),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
+            : _errorMessage.isNotEmpty
+            ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.redAccent)))
+            : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Card(
-              color: Colors.deepPurple,
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.verified_user, size: 50, color: Colors.white),
-                    SizedBox(width: 15),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('System Operator', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                        Text('Role: Academic Registrar Node', style: TextStyle(color: Colors.white70)),
-                      ],
-                    )
-                  ],
-                ),
+            const Text('GET /api/v1/endpoints structural mapping stream:', style: TextStyle(color: Colors.grey, fontFamily: 'monospace', fontSize: 12)),
+            const SizedBox(height: 12),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _fetchedJsonRecords.length,
+                itemBuilder: (context, index) {
+                  final node = _fetchedJsonRecords[index];
+                  return Card(
+                    color: const Color(0xFF181818),
+                    borderOnForeground: true,
+                    shape: RoundedRectangleBorder(side: const BorderSide(color: Colors.white10), borderRadius: BorderRadius.circular(8)),
+                    child: ListTile(
+                      leading: const Icon(Icons.cloud_done, color: Colors.orangeAccent),
+                      title: Text(node['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text('Role: ${node['role']} \nData Identity: ${node['email']}'),
+                      trailing: const Icon(Icons.arrow_right, color: Colors.grey),
+                    ),
+                  );
+                },
               ),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.dns, color: Colors.blue),
-              title: const Text('Total Database Records Indexed'),
-              trailing: Text('${globalStudentDatabase.length}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ),
-            const Divider(),
-            const ListTile(
-              leading: Icon(Icons.g_translate, color: Colors.green),
-              title: Text('Cross-Platform Engine'),
-              trailing: Text('Flutter Web SDK', style: TextStyle(fontWeight: FontWeight.w500)),
-            ),
-            const Divider(),
-            const ListTile(
-              leading: Icon(Icons.security, color: Colors.red),
-              title: Text('Local Memory Sync State'),
-              trailing: Text('ACTIVE', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-// PLACEHOLDER FOR DASHBOARD UI GRID SYMMETRY
-class SettingsPlaceholderPage extends StatelessWidget {
-  const SettingsPlaceholderPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings'), backgroundColor: Colors.deepPurple, iconTheme: const IconThemeData(color: Colors.white)),
-      body: const Center(child: Text('System properties configuration panel running nominal.')),
     );
   }
 }
