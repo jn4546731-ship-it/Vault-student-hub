@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:convert'; // For Week 5 JSON formatting mechanisms
+import 'dart:convert';
 
 void main() {
   runApp(const VaultStudentHubApp());
@@ -22,6 +22,7 @@ class VaultStudentHubApp extends StatelessWidget {
         '/': (context) => const LoginScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/registration': (context) => const StudentRegistrationScreen(),
+        '/attendance': (context) => const AttendanceManagementScreen(),
         '/api_consumer': (context) => const ApiConsumerScreen(),
       },
       debugShowCheckedModeBanner: false,
@@ -30,7 +31,7 @@ class VaultStudentHubApp extends StatelessWidget {
 }
 
 // ==========================================
-// 🔐 MODULE 1: LOGIN SCREEN (Week 4 Security)
+// 🔐 MODULE 1: LOGIN SCREEN
 // ==========================================
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
-      // Basic authentication input validation logic
       if (_admissionController.text == "BIT/2024/74648") {
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 // ==========================================
-// 📊 MODULE 2: RECONFIGURED DASHBOARD SCREEN
+// 📊 MODULE 2: MASTER DASHBOARD SCREEN
 // ==========================================
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -129,12 +129,6 @@ class DashboardScreen extends StatelessWidget {
         title: const Text('Vault Student Hub'),
         backgroundColor: Colors.black12,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => Navigator.pushReplacementNamed(context, '/'),
-          )
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -147,7 +141,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Academic Track: BSIT | Registration System Operational',
+              'Academic Track: BSIT | System Active',
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 24),
@@ -159,15 +153,23 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   _buildMenuCard(
                       context,
-                      title: 'Local CRUD System',
-                      subtitle: 'SQLite Management App',
-                      icon: Icons.storage,
+                      title: 'Student Directory',
+                      subtitle: 'Manage Profiles (Task 2)',
+                      icon: Icons.badge,
                       route: '/registration',
+                      color: Colors.blueAccent
+                  ),
+                  _buildMenuCard(
+                      context,
+                      title: 'Attendance Tracker',
+                      subtitle: 'Class Roll Ledger (Task 3)',
+                      icon: Icons.how_to_reg,
+                      route: '/attendance',
                       color: Colors.greenAccent
                   ),
                   _buildMenuCard(
                       context,
-                      title: 'API Consumer',
+                      title: 'API Terminal',
                       subtitle: 'External REST Portal',
                       icon: Icons.cloud_sync,
                       route: '/api_consumer',
@@ -196,10 +198,10 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(icon, size: 40, color: color),
-              const SizedBox(height: 16),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              Text(subtitle, style: const TextStyle(fontSize: 10, color: Colors.grey)),
             ],
           ),
         ),
@@ -209,7 +211,24 @@ class DashboardScreen extends StatelessWidget {
 }
 
 // ==========================================
-// 🗄️ MODULE 3: WEEK 4 LOCAL CRUD ENGINE
+// 🗄️ DATA CORE: SHARED RELATIONAL SIMULATION STATE
+// ==========================================
+// Global dummy relational state layer mirroring SQLite tables structure
+class LocalDatabaseSimulation {
+  // Task 2: Students Table Structure
+  static final List<Map<String, String>> studentsTable = [
+    {"student_id": "BIT/2024/74648", "student_name": "John Njoroge", "course": "BIT", "year": "3", "phone": "0712345678"},
+    {"student_id": "BIT/2024/99999", "student_name": "Samuel Kamau", "course": "BCS", "year": "3", "phone": "0787654321"},
+  ];
+
+  // Task 3: Attendance Ledger Table Structure
+  static final List<Map<String, String>> attendanceTable = [
+    {"record_id": "1", "student_id": "BIT/2024/74648", "date": "2026-06-17", "status": "Present"},
+  ];
+}
+
+// ==========================================
+// 📋 MODULE 3: TASK 2 STUDENT REGISTRATION
 // ==========================================
 class StudentRegistrationScreen extends StatefulWidget {
   const StudentRegistrationScreen({super.key});
@@ -219,128 +238,165 @@ class StudentRegistrationScreen extends StatefulWidget {
 }
 
 class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
-  // In-memory data relational mapping mirroring relational tables
-  final List<Map<String, dynamic>> _studentDatabase = [
-    {"id": 1, "name": "John Njoroge", "course": "BIT"},
-    {"id": 2, "name": "Samuel Kamau", "course": "BCS"},
-  ];
-
+  final _idController = TextEditingController();
   final _nameController = TextEditingController();
   final _courseController = TextEditingController();
-  final _searchController = TextEditingController();
-  int _nextId = 3;
-  String _searchQuery = "";
+  final _phoneController = TextEditingController();
 
-  // CRUD Operation: Create Record
-  void _createRecord() {
-    if (_nameController.text.isNotEmpty && _courseController.text.isNotEmpty) {
+  // Simulated SQL Operation: INSERT INTO Students
+  void _executeInsertCommand() {
+    if (_idController.text.isNotEmpty && _nameController.text.isNotEmpty) {
       setState(() {
-        _studentDatabase.add({
-          "id": _nextId++,
-          "name": _nameController.text,
+        LocalDatabaseSimulation.studentsTable.add({
+          "student_id": _idController.text,
+          "student_name": _nameController.text,
           "course": _courseController.text,
+          "year": "3",
+          "phone": _phoneController.text,
         });
-        _nameController.clear();
-        _courseController.clear();
       });
+      _idController.clear();
+      _nameController.clear();
+      _courseController.clear();
+      _phoneController.clear();
       Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('SQL Command Executed: INSERT SUCCESS')),
+      );
     }
-  }
-
-  // CRUD Operation: Update Record
-  void _updateRecord(int id, String currentName, String currentCourse) {
-    _nameController.text = currentName;
-    _courseController.text = currentCourse;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Update Student Record'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Name')),
-            TextField(controller: _courseController, decoration: const InputDecoration(labelText: 'Course Code')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                final target = _studentDatabase.firstWhere((element) => element['id'] == id);
-                target['name'] = _nameController.text;
-                target['course'] = _courseController.text;
-              });
-              _nameController.clear();
-              _courseController.clear();
-              Navigator.pop(context);
-            },
-            child: const Text('Save Changes'),
-          )
-        ],
-      ),
-    );
-  }
-
-  // CRUD Operation: Delete Record
-  void _deleteRecord(int id) {
-    setState(() {
-      _studentDatabase.removeWhere((element) => element['id'] == id);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Dynamic structural search filtering array updates
-    final filteredRecords = _studentDatabase.where((student) {
-      return student['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          student['course'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
-
     return Scaffold(
-      appBar: AppBar(title: const Text('SQLite Record Management'), backgroundColor: Colors.black12),
+      appBar: AppBar(title: const Text('Student Directory Database'), backgroundColor: Colors.black12),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: LocalDatabaseSimulation.studentsTable.length,
+        itemBuilder: (context, index) {
+          final student = LocalDatabaseSimulation.studentsTable[index];
+          return Card(
+            color: const Color(0xFF1E1E1E),
+            child: ListTile(
+              leading: const CircleAvatar(backgroundColor: Colors.blueAccent, child: Icon(Icons.person, color: Colors.white)),
+              title: Text(student['student_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('ID: ${student['student_id']} | Prog: ${student['course']} \nContact: ${student['phone']}'),
+              isThreeLine: true,
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('SQL Execution Window: CREATE STUDENT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                TextField(controller: _idController, decoration: const InputDecoration(labelText: 'Student ID (PK)')),
+                TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Full Name')),
+                TextField(controller: _courseController, decoration: const InputDecoration(labelText: 'Course Program')),
+                TextField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _executeInsertCommand,
+                  style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(45), backgroundColor: Colors.blueAccent),
+                  child: const Text('EXECUTE INSERT', style: TextStyle(color: Colors.white)),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 📅 MODULE 4: TASK 3 ATTENDANCE TRACKER
+// ==========================================
+class AttendanceManagementScreen extends StatefulWidget {
+  const AttendanceManagementScreen({super.key});
+
+  @override
+  State<AttendanceManagementScreen> createState() => _AttendanceManagementScreenState();
+}
+
+class _AttendanceManagementScreenState extends State<AttendanceManagementScreen> {
+  String _selectedStatus = "Present";
+
+  // Simulated SQL Operation: INSERT INTO Attendance_Records (Relational FK Mapping)
+  void _markAttendance(String studentId) {
+    setState(() {
+      LocalDatabaseSimulation.attendanceTable.add({
+        "record_id": (LocalDatabaseSimulation.attendanceTable.length + 1).toString(),
+        "student_id": studentId,
+        "date": "2026-06-17",
+        "status": _selectedStatus,
+      });
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Attendance Logged for $studentId -> $_selectedStatus')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Class Attendance Ledger'), backgroundColor: Colors.black12),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value),
-              decoration: const InputDecoration(
-                labelText: 'Search Records...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
+            const Text('Select Roster Action Status:', style: TextStyle(color: Colors.grey)),
+            Row(
+              children: [
+                Radio<String>(
+                  value: "Present",
+                  groupValue: _selectedStatus,
+                  onChanged: (val) => setState(() => _selectedStatus = val!),
+                ),
+                const Text("Present"),
+                const SizedBox(width: 20),
+                Radio<String>(
+                  value: "Absent",
+                  groupValue: _selectedStatus,
+                  onChanged: (val) => setState(() => _selectedStatus = val!),
+                ),
+                const Text("Absent"),
+              ],
             ),
-            const SizedBox(height: 16),
+            const Divider(height: 32, color: Colors.white24),
+            const Text('Active Student Database Roster:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
             Expanded(
               child: ListView.builder(
-                itemCount: filteredRecords.length,
+                itemCount: LocalDatabaseSimulation.studentsTable.length,
                 itemBuilder: (context, index) {
-                  final record = filteredRecords[index];
+                  final student = LocalDatabaseSimulation.studentsTable[index];
+
+                  // Compute Relational SQL aggregation logic (Count instances matching current key)
+                  final attendanceCount = LocalDatabaseSimulation.attendanceTable
+                      .where((rec) => rec['student_id'] == student['student_id'] && rec['status'] == 'Present')
+                      .length;
+
                   return Card(
                     color: const Color(0xFF1E1E1E),
-                    margin: const EdgeInsets.symmetric(vertical: 6),
                     child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blueAccent,
-                        child: Text(record['id'].toString(), style: const TextStyle(color: Colors.white)),
-                      ),
-                      title: Text(record['name']),
-                      subtitle: Text('Course Field: ${record['course']}'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blueAccent),
-                            onPressed: () => _updateRecord(record['id'], record['name'], record['course']),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.redAccent),
-                            onPressed: () => _deleteRecord(record['id']),
-                          ),
-                        ],
+                      title: Text(student['student_name']!),
+                      subtitle: Text('ID: ${student['student_id']} \nTotal Sessions Attended: $attendanceCount'),
+                      trailing: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        onPressed: () => _markAttendance(student['student_id']!),
+                        child: const Text('LOG STATUS', style: TextStyle(color: Colors.white, fontSize: 11)),
                       ),
                     ),
                   );
@@ -350,40 +406,12 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blueAccent,
-        child: const Icon(Icons.add, color: Colors.white),
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) => Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 16, right: 16, top: 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Insert Data Record', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Full Name')),
-                  TextField(controller: _courseController, decoration: const InputDecoration(labelText: 'Course Name')),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _createRecord,
-                    style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(45)),
-                    child: const Text('Execute INSERT'),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }
 
 // ==========================================
-// 🌐 MODULE 4: WEEK 5 ASYNCHRONOUS REST API PORTAL
+// 🌐 MODULE 5: ASYNCHRONOUS REST API PORTAL
 // ==========================================
 class ApiConsumerScreen extends StatefulWidget {
   const ApiConsumerScreen({super.key});
@@ -394,33 +422,16 @@ class ApiConsumerScreen extends StatefulWidget {
 
 class _ApiConsumerScreenState extends State<ApiConsumerScreen> {
   bool _isLoading = false;
-  String _errorMessage = "";
   List<dynamic> _fetchedJsonRecords = [];
 
-  // Async task framework processing simulated endpoint response safely
   Future<void> fetchRemoteApiData() async {
+    setState(() { _isLoading = true; });
+    await Future.delayed(const Duration(milliseconds: 1000));
+    String rawMockJsonStream = '[{"id": 101, "name": "Dr. Charles Nyoro", "role": "Department Head"}, {"id": 102, "name": "Computing Lab Alpha", "role": "Gateway Server"}]';
     setState(() {
-      _isLoading = true;
-      _errorMessage = "";
+      _fetchedJsonRecords = jsonDecode(rawMockJsonStream);
+      _isLoading = false;
     });
-
-    try {
-      // Emulating network server call latency safely
-      await Future.delayed(const Duration(milliseconds: 1500));
-
-      // JSON Serialization String stream (Week 5 Standard payload mapping layout)
-      String rawMockJsonStream = '[{"id": 101, "name": "Dr. Charles Nyoro", "role": "Department Head", "email": "nyoro@mku.ac.ke"}, {"id": 102, "name": "Computing Lab Alpha", "role": "Server Node Gateway", "email": "gateway@vsh.io"}]';
-
-      setState(() {
-        _fetchedJsonRecords = jsonDecode(rawMockJsonStream);
-        _isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        _errorMessage = "Timeout or 500 Server Error encountered.";
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -432,43 +443,23 @@ class _ApiConsumerScreenState extends State<ApiConsumerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('REST API Data Terminal'),
-        backgroundColor: Colors.black12,
-        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: fetchRemoteApiData)],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
-            : _errorMessage.isNotEmpty
-            ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.redAccent)))
-            : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('GET /api/v1/endpoints structural mapping stream:', style: TextStyle(color: Colors.grey, fontFamily: 'monospace', fontSize: 12)),
-            const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _fetchedJsonRecords.length,
-                itemBuilder: (context, index) {
-                  final node = _fetchedJsonRecords[index];
-                  return Card(
-                    color: const Color(0xFF181818),
-                    borderOnForeground: true,
-                    shape: RoundedRectangleBorder(side: const BorderSide(color: Colors.white10), borderRadius: BorderRadius.circular(8)),
-                    child: ListTile(
-                      leading: const Icon(Icons.cloud_done, color: Colors.orangeAccent),
-                      title: Text(node['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('Role: ${node['role']} \nData Identity: ${node['email']}'),
-                      trailing: const Icon(Icons.arrow_right, color: Colors.grey),
-                    ),
-                  );
-                },
-              ),
+      appBar: AppBar(title: const Text('REST API Data Terminal'), backgroundColor: Colors.black12),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
+          : ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _fetchedJsonRecords.length,
+        itemBuilder: (context, index) {
+          final node = _fetchedJsonRecords[index];
+          return Card(
+            color: const Color(0xFF181818),
+            child: ListTile(
+              leading: const Icon(Icons.cloud_done, color: Colors.orangeAccent),
+              title: Text(node['name']),
+              subtitle: Text('Role: ${node['role']}'),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
